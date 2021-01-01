@@ -1,0 +1,88 @@
+#!/usr/bin/python3
+
+# superfind - Find files and folders on the filesystem including archives.
+# Copyright (C) 2020 Adam Monsen
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import argparse
+import os
+import re
+import sys
+import tarfile
+import zipfile
+
+parser = argparse.ArgumentParser(description='Find files and folders on the filesystem including archives.')
+parser.add_argument('startat', help='Starting point.')
+parser.add_argument('pattern', help='Search string.')
+args = parser.parse_args()
+
+def get_archive_type(path):
+    if re.search(r'(tgz|tar|tar.gz)$', path, re.IGNORECASE):
+        return 'tar'
+    if re.search(r'zip$', path, re.IGNORECASE):
+        return 'zip'
+
+def get_matching_members_from_tar(path, pattern):
+    matches = []
+    if os.stat(path).st_size < 1: return []
+    try:
+        with tarfile.open(path, 'r') as tar:
+            for tarinfo in tar:
+                if not tarinfo.isfile():
+                    continue
+                if re.search(pattern, tarinfo.name, re.IGNORECASE):
+                    matches.append(tarinfo.name)
+    except PermissionError as e:
+        print(e, file=sys.stderr)
+    return matches
+
+def get_matching_members_from_zip(path, pattern):
+    matches = []
+    if os.stat(path).st_size < 1: return []
+    try:
+        with zipfile.ZipFile(path) as zf:
+            for zinfo in zf.infolist():
+                if zinfo.is_dir():
+                    continue
+                if re.search(pattern, zinfo.filename, re.IGNORECASE):
+                    matches.append(zinfo.filename)
+    except PermissionError as e:
+        print(e, file=sys.stderr)
+    return matches
+
+cmd = 'find {} -type f -iregex \'{}\' 2>/dev/null'.format(args.startat, args.pattern)
+with os.popen(cmd, mode='r') as findpipe:
+    while True:
+        line = findpipe.readline()
+        if not line:
+            break
+        clean_path = line.rstrip()
+        print('{}\t{}'.format('FIND', clean_path))
+
+cmd = r"find {} -type f -iregex '.*\(zip\|tgz\|tar\|tar.gz\)$' 2>/dev/null".format(args.startat)
+with os.popen(cmd, mode='r') as findpipe:
+    while True:
+        line = findpipe.readline()
+        if not line:
+            break
+        clean_path = line.rstrip()
+        archive_type = get_archive_type(clean_path)
+        if archive_type:
+            if archive_type == 'tar':
+                matches = get_matching_members_from_tar(clean_path, args.pattern)
+            if archive_type == 'zip':
+                matches = get_matching_members_from_zip(clean_path, args.pattern)
+            for item in matches:
+                print('{}\t{}'.format(clean_path, item))
