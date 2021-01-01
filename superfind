@@ -46,6 +46,9 @@ def get_matching_members_from_tar(path, pattern):
                     matches.append(tarinfo.name)
     except PermissionError as e:
         print(e, file=sys.stderr)
+    except:
+        print("error with", path)
+        raise
     return matches
 
 def get_matching_members_from_zip(path, pattern):
@@ -60,6 +63,9 @@ def get_matching_members_from_zip(path, pattern):
                     matches.append(zinfo.filename)
     except PermissionError as e:
         print(e, file=sys.stderr)
+    except:
+        print("error with", path)
+        raise
     return matches
 
 cmd = 'find {} -type f -iregex \'{}\' 2>/dev/null'.format(args.startat, args.pattern)
