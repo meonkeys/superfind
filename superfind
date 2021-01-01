@@ -29,9 +29,9 @@ parser.add_argument('pattern', help='Search string.')
 args = parser.parse_args()
 
 def get_archive_type(path):
-    if re.search(r'(tgz|tar|tar.gz)$', path, re.IGNORECASE):
+    if re.search(r'\.(tgz|tar|tar.gz)$', path, re.IGNORECASE):
         return 'tar'
-    if re.search(r'zip$', path, re.IGNORECASE):
+    if re.search(r'\.zip$', path, re.IGNORECASE):
         return 'zip'
 
 def get_matching_members_from_tar(path, pattern):
@@ -77,7 +77,7 @@ with os.popen(cmd, mode='r') as findpipe:
         clean_path = line.rstrip()
         print('{}\t{}'.format('FIND', clean_path))
 
-cmd = r"find {} -type f -iregex '.*\(zip\|tgz\|tar\|tar.gz\)$' 2>/dev/null".format(args.startat)
+cmd = r"find {} -type f -iregex '.*\.\(zip\|tgz\|tar\|tar.gz\)$' 2>/dev/null".format(args.startat)
 with os.popen(cmd, mode='r') as findpipe:
     while True:
         line = findpipe.readline()
