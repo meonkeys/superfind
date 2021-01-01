@@ -1,6 +1,6 @@
 # superfind
 
-Find files and folders on the filesystem including archives.
+Find files and folders on the filesystem including within archives.
 
 ## SYNOPSIS
 
