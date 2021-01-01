@@ -32,7 +32,7 @@ All searches are case-insensitive. Only files are matched.
 
 ## TO DO
 
-- [ ] Are there other/better free software utilities that do serve the same purpose as this program? list/promote them.
+- [ ] Are there other/better free software utilities like this one? List/promote them.
 - [ ] Right now we check if something is an archive by matching the file extension. Consider checking file magic number instead, like the `file` command?
 - [ ] Recurse if an archive is found in an archive.
 - [ ] Go parallel: search through archives using another core (separate thread/process).
